@@ -4,5 +4,6 @@
 int main(void)
 {
     printf("Ici commence le projet");
-    return 0;
+    int x = 0;
+    return x;
 }
