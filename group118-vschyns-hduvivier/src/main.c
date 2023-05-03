@@ -2,32 +2,28 @@
 #include <stdio.h>
 
 
-#include <GLFW/glfw3.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <string.h>
+
+#include "D:\Documents\EPL\Q6\LEPL1110\Projet\ProjetELFI\group118-vschyns-hduvivier\gmsh\gmsh-4.11.1-Windows64-sdk\include\gmshc.h"
+
 
 void geoMeshGenerate() {
  
-    int ierr;
-/*
-x1: Coordonnée x du coin inférieur gauche du rectangle.
-y1: Coordonnée y du coin inférieur gauche du rectangle.
-z1: Coordonnée z du coin inférieur gauche du rectangle (zéro par défaut).
-x2: Coordonnée x du coin supérieur droit du rectangle.
-y2: Coordonnée y du coin supérieur droit du rectangle.
-z2: Coordonnée z du coin supérieur droit du rectangle (zéro par défaut).
-tag: Étiquette à donner à l'entité créée (zéro par défaut).
-makeSolid: Si vrai, crée une surface solide plutôt qu'une surface (faux par défaut).
-*/
-    double l = 1.;
+    double l = 5.;
     double ha = 1.;
 
-    double x1 = 0.0;
-    double y1 = 0.0;
-    int idRect = gmshModelOccAddRectangle(x1,y1,0.0,l,3*ha,-1,0.0,&ierr); 
+    double px1 = 0.0;
+    double py1 = 0.0;
+    int idRect = gmshModelOccAddRectangle(px1,py1,0.0,l,3*ha,-1,0.0,&ierr); 
     
-    double x2 = 0.0;
-    double y2 = ha;
+    double px2 = 0.0;
+    double py2 = ha;
     double l2 = 2.0 * l / 5.0;
-    int idRect2 = gmshModelOccAddRectangle(x2,y2,0.0,l2,2*ha,-1,0.0,&ierr);    
+    int idRect2 = gmshModelOccAddRectangle(px2,py2,0.0,l2,2*ha,-1,0.0,&ierr);    
 
     double x3 = 3.0 * l / 5.0;
     double y3 = ha;
