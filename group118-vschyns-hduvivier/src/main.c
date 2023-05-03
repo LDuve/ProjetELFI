@@ -3,22 +3,21 @@
 #include "fem.h"
 
 #include <GLFW/glfw3.h>
-#include "glfem.h"
-
-double geoSize(double x, double y){
-
-    femGeo* theGeometry = geoGetGeometry();
-    
-    double h = theGeometry->h;           
-    return h;
-    
-
-}
 
 void geoMeshGenerate() {
-
+ 
     int ierr;
-    double l = 5.;
+/*
+x1: Coordonnée x du coin inférieur gauche du rectangle.
+y1: Coordonnée y du coin inférieur gauche du rectangle.
+z1: Coordonnée z du coin inférieur gauche du rectangle (zéro par défaut).
+x2: Coordonnée x du coin supérieur droit du rectangle.
+y2: Coordonnée y du coin supérieur droit du rectangle.
+z2: Coordonnée z du coin supérieur droit du rectangle (zéro par défaut).
+tag: Étiquette à donner à l'entité créée (zéro par défaut).
+makeSolid: Si vrai, crée une surface solide plutôt qu'une surface (faux par défaut).
+*/
+    double l = 1.;
     double ha = 1.;
 
     double px1 = 0.0;
@@ -44,10 +43,8 @@ void geoMeshGenerate() {
     
 
     gmshModelOccSynchronize(&ierr); 
-    gmshOptionSetNumber("Mesh.SaveAll", 1, &ierr);
-    gmshModelMeshGenerate(2, &ierr);  //genere le maillage
-    return; 
-     
+
+    return;
 }
 
 
