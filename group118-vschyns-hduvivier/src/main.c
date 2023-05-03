@@ -40,6 +40,20 @@ void geoMeshGenerate() {
 
     gmshModelOccSynchronize(&ierr); 
 
+
+    //
+//  -2- D�finition de la fonction callback pour la taille de r�f�rence
+//      Synchronisation de OpenCascade avec gmsh
+//      G�n�ration du maillage (avec l'option Mesh.SaveAll :-)
+                  
+   
+    //geoSetSizeCallback(geoSize);  //donner la carte de pour le maillage //servais a reduire la taille des morceaux
+                                  
+    gmshModelOccSynchronize(&ierr); //envoyer les informations de géométrie à gmsh      
+    gmshOptionSetNumber("Mesh.SaveAll", 1, &ierr);
+    gmshModelMeshGenerate(2, &ierr);  //genere le maillage
+    //gmshFltkRun(&ierr);  //pour visualiser dans gmsh mais pas utile
+
     return;
 }
 
