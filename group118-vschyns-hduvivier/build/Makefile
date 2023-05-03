@@ -229,6 +229,33 @@ src/main.c.s:
 	$(MAKE) -f CMakeFiles\myFem.dir\build.make CMakeFiles/myFem.dir/src/main.c.s
 .PHONY : src/main.c.s
 
+src/projet.obj: src/projet.c.obj
+
+.PHONY : src/projet.obj
+
+# target to build an object file
+src/projet.c.obj:
+	$(MAKE) -f CMakeFiles\myFem.dir\build.make CMakeFiles/myFem.dir/src/projet.c.obj
+.PHONY : src/projet.c.obj
+
+src/projet.i: src/projet.c.i
+
+.PHONY : src/projet.i
+
+# target to preprocess a source file
+src/projet.c.i:
+	$(MAKE) -f CMakeFiles\myFem.dir\build.make CMakeFiles/myFem.dir/src/projet.c.i
+.PHONY : src/projet.c.i
+
+src/projet.s: src/projet.c.s
+
+.PHONY : src/projet.s
+
+# target to generate assembly for a file
+src/projet.c.s:
+	$(MAKE) -f CMakeFiles\myFem.dir\build.make CMakeFiles/myFem.dir/src/projet.c.s
+.PHONY : src/projet.c.s
+
 # Help Target
 help:
 	@echo The following are some of the valid targets for this Makefile:
@@ -249,6 +276,9 @@ help:
 	@echo ... src/main.obj
 	@echo ... src/main.i
 	@echo ... src/main.s
+	@echo ... src/projet.obj
+	@echo ... src/projet.i
+	@echo ... src/projet.s
 .PHONY : help
 
 

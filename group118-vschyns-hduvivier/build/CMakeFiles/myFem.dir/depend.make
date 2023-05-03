@@ -16,5 +16,8 @@ CMakeFiles/myFem.dir/src/main.c.obj: ../gmsh/gmsh-4.11.1-Windows64-sdk/include/g
 CMakeFiles/myFem.dir/src/main.c.obj: ../src/fem.h
 CMakeFiles/myFem.dir/src/main.c.obj: ../src/glfem.h
 CMakeFiles/myFem.dir/src/main.c.obj: ../src/main.c
-CMakeFiles/myFem.dir/src/main.c.obj: ../src/stru.h
+
+CMakeFiles/myFem.dir/src/projet.c.obj: ../gmsh/gmsh-4.11.1-Windows64-sdk/include/gmshc.h
+CMakeFiles/myFem.dir/src/projet.c.obj: ../src/fem.h
+CMakeFiles/myFem.dir/src/projet.c.obj: ../src/projet.c
 
