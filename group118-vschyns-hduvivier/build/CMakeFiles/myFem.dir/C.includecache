@@ -10,7 +10,7 @@
 stddef.h
 -
 
-D:/Utilisateur/Documents/EPL/Q6/Elements finis/Projet/ProjetELFI/group118-vschyns-hduvivier/src/fem.h
+D:/Utilisateur/Documents/EPL/Q6/Elements finis/Projet/ProjetELFI/group118-vschyns-hduvivier/src/femGeo.h
 stdio.h
 -
 stdlib.h
@@ -23,6 +23,6 @@ gmshc.h
 D:/Utilisateur/Documents/EPL/Q6/Elements finis/Projet/ProjetELFI/group118-vschyns-hduvivier/src/gmshc.h
 
 D:/Utilisateur/Documents/EPL/Q6/Elements finis/Projet/ProjetELFI/group118-vschyns-hduvivier/src/projet.c
-fem.h
-D:/Utilisateur/Documents/EPL/Q6/Elements finis/Projet/ProjetELFI/group118-vschyns-hduvivier/src/fem.h
+femGeo.h
+D:/Utilisateur/Documents/EPL/Q6/Elements finis/Projet/ProjetELFI/group118-vschyns-hduvivier/src/femGeo.h
 

@@ -1,4 +1,4 @@
-#include "fem.h"
+#include "femGeo.h"
 
 
 
@@ -58,7 +58,7 @@ void geoMeshGenerate() {
 
     gmshModelOccCut(rect,2,rect2,2,NULL,NULL,NULL,NULL,NULL,-1,1,1,&ierr);
     gmshModelOccCut(rect,2,rect3,2,NULL,NULL,NULL,NULL,NULL,-1,1,1,&ierr);
-    
+
     geoSetSizeCallback(geoSize);   
     gmshModelOccSynchronize(&ierr);  
     gmshOptionSetNumber("Mesh.SaveAll", 1, &ierr);

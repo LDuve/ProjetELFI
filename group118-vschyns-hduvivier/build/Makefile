@@ -148,32 +148,32 @@ glfw/fast:
 	$(MAKE) -f glfw\src\CMakeFiles\glfw.dir\build.make glfw/src/CMakeFiles/glfw.dir/build
 .PHONY : glfw/fast
 
-src/fem.obj: src/fem.c.obj
+src/femGeo.obj: src/femGeo.c.obj
 
-.PHONY : src/fem.obj
+.PHONY : src/femGeo.obj
 
 # target to build an object file
-src/fem.c.obj:
-	$(MAKE) -f CMakeFiles\myFem.dir\build.make CMakeFiles/myFem.dir/src/fem.c.obj
-.PHONY : src/fem.c.obj
+src/femGeo.c.obj:
+	$(MAKE) -f CMakeFiles\myFem.dir\build.make CMakeFiles/myFem.dir/src/femGeo.c.obj
+.PHONY : src/femGeo.c.obj
 
-src/fem.i: src/fem.c.i
+src/femGeo.i: src/femGeo.c.i
 
-.PHONY : src/fem.i
+.PHONY : src/femGeo.i
 
 # target to preprocess a source file
-src/fem.c.i:
-	$(MAKE) -f CMakeFiles\myFem.dir\build.make CMakeFiles/myFem.dir/src/fem.c.i
-.PHONY : src/fem.c.i
+src/femGeo.c.i:
+	$(MAKE) -f CMakeFiles\myFem.dir\build.make CMakeFiles/myFem.dir/src/femGeo.c.i
+.PHONY : src/femGeo.c.i
 
-src/fem.s: src/fem.c.s
+src/femGeo.s: src/femGeo.c.s
 
-.PHONY : src/fem.s
+.PHONY : src/femGeo.s
 
 # target to generate assembly for a file
-src/fem.c.s:
-	$(MAKE) -f CMakeFiles\myFem.dir\build.make CMakeFiles/myFem.dir/src/fem.c.s
-.PHONY : src/fem.c.s
+src/femGeo.c.s:
+	$(MAKE) -f CMakeFiles\myFem.dir\build.make CMakeFiles/myFem.dir/src/femGeo.c.s
+.PHONY : src/femGeo.c.s
 
 src/glfem.obj: src/glfem.c.obj
 
@@ -267,9 +267,9 @@ help:
 	@echo ... edit_cache
 	@echo ... rebuild_cache
 	@echo ... glfw
-	@echo ... src/fem.obj
-	@echo ... src/fem.i
-	@echo ... src/fem.s
+	@echo ... src/femGeo.obj
+	@echo ... src/femGeo.i
+	@echo ... src/femGeo.s
 	@echo ... src/glfem.obj
 	@echo ... src/glfem.i
 	@echo ... src/glfem.s
