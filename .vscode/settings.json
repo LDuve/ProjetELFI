@@ -1,5 +1,6 @@
 {
     "files.associations": {
         "stdio.h": "c"
-    }
+    },
+    "cmake.sourceDirectory": "D:/Documents/EPL/Q6/LEPL1110/Projet/ProjetELFI/group118-vschyns-hduvivier"
 }
