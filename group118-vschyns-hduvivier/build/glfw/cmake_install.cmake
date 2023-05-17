@@ -1,4 +1,4 @@
-# Install script for directory: D:/Utilisateur/Documents/EPL/Q6/Elements finis/Projet/ProjetELFI/group118-vschyns-hduvivier/glfw
+# Install script for directory: D:/Documents/EPL/Q6/LEPL1110/Projet/ProjetELFI/group118-vschyns-hduvivier/glfw
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -32,9 +32,14 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
   set(CMAKE_CROSSCOMPILING "FALSE")
 endif()
 
+# Set default install directory permissions.
+if(NOT DEFINED CMAKE_OBJDUMP)
+  set(CMAKE_OBJDUMP "C:/TDM-GCC-64/bin/objdump.exe")
+endif()
+
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("D:/Utilisateur/Documents/EPL/Q6/Elements finis/Projet/ProjetELFI/group118-vschyns-hduvivier/build/glfw/src/cmake_install.cmake")
+  include("D:/Documents/EPL/Q6/LEPL1110/Projet/ProjetELFI/group118-vschyns-hduvivier/build/glfw/src/cmake_install.cmake")
 
 endif()
 
