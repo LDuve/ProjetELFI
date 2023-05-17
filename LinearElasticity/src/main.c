@@ -29,9 +29,11 @@ int main(void)
     theGeometry->h           =  Lx * 0.2;    
     theGeometry->elementType = FEM_TRIANGLE;  //FEM_TRIANGLE  FEM_QUAD
   
-    //geoMeshGenerateGeo();
-    //geoMeshGenerate();
+//    geoMeshGenerateGeo();
+//    geoMeshGenerate();
     geoMeshGenerateGeoProjet();
+//    geoMeshGenerateProjecteur();
+//    geoMeshGenerateBar();
     
 
     geoMeshImport();

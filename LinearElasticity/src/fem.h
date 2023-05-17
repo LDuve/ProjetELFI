@@ -114,7 +114,7 @@ void                geoSetSizeCallback(double (*geoSize)(double x, double y));
 void                geoMeshGenerate();
 void                geoMeshGenerateGeoProjet();
 void                geoMeshGenerateBar();
-void                geoMeshGenerateGeoProjet();
+void                geoMeshGenerateProjecteur();
 void                geoMeshGenerateBarProjet();
 void                geoMeshGenerateGeo();
 void                geoMeshImport();
