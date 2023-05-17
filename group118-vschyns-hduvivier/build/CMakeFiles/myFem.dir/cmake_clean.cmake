@@ -1,7 +1,8 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/myFem.dir/src/fem.c.obj"
+  "CMakeFiles/myFem.dir/src/femGeo.c.obj"
   "CMakeFiles/myFem.dir/src/glfem.c.obj"
   "CMakeFiles/myFem.dir/src/main.c.obj"
+  "CMakeFiles/myFem.dir/src/projet.c.obj"
   "libmyFem.dll.a"
   "myFem.exe"
   "myFem.exe.manifest"
