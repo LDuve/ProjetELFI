@@ -27,7 +27,7 @@
 #define MAXNAME 256
 
 typedef enum {FEM_TRIANGLE,FEM_QUAD} femElementType;
-typedef enum {DIRICHLET_X,DIRICHLET_Y} femBoundaryType;
+typedef enum {DIRICHLET_X,DIRICHLET_Y,NEUMANN_X,NEUMANN_Y,TANGENTIEL,NORMAL} femBoundaryType;
 typedef enum {PLANAR_STRESS,PLANAR_STRAIN,AXISYM} femElasticCase;
 
 
@@ -38,9 +38,14 @@ typedef struct {
 } femNodes;
 
 typedef struct {
+    int elemIndex;
+    double value;
+} femElem;
+
+typedef struct {
     int nLocalNode;
     int nElem;
-    int *elem;
+    int  *elem;  //tableau de int
     femNodes *nodes;
 } femMesh;
 
@@ -48,11 +53,13 @@ typedef struct {
     femMesh *mesh;
     int nElem;
     int *elem;
+    femElem *elemUnique;
     char name[MAXNAME];
+    femElem *Elem;
 } femDomain;
 
 typedef struct {
-    double LxPlate, LyPlate;
+    double LxPlate, LyPlate , LxBar , LyBar;
     double h;
     femElementType elementType;
     double (*geoSize)(double x, double y);
@@ -88,11 +95,11 @@ typedef struct {
     femDomain* domain;
     femBoundaryType type; 
     double value;
+    int *elem;
 } femBoundaryCondition;
 
 
 typedef struct {
-    int *neumannValues;
     double E,nu,rho,g;
     double A,B,C;
     int planarStrainStress;
@@ -157,5 +164,9 @@ void                femErrorScan(int test, int line, char *file);
 void                femErrorGmsh(int test, int line, char *file);
 void                femWarning(char *text, int line, char *file);
 
-
+void printBoundaryCondition(femProblem *theProblem, femBoundaryCondition *boundaryCondition);
+void printMatrices(femFullSystem *system);
+void  femFullSystemConstrainNeumann(femFullSystem *mySystem, int myNode, double myValue);
+void printValues(int myNode, double myValue, int size,double *B);
+void                femElasticityAddBoundaryConditionXXX(femProblem *theProblem, char *nameDomain, femBoundaryType type, double value);
 #endif

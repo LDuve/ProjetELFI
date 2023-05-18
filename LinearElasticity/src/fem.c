@@ -569,8 +569,82 @@ double* femFullSystemEliminate(femFullSystem *mySystem)
     return(mySystem->B);    
 }
 
-void  femFullSystemConstrain(femFullSystem *mySystem, 
-                             int myNode, double myValue) 
+
+
+void printMatrices(femFullSystem *system) {
+    
+    double **A = system->A;
+    double *B = system->B;
+    int size = system->size;
+    /*
+    printf("Matrix A:\n");
+    for (int i = 0; i < size; i++) {
+        for (int j = 0; j < size; j++) {
+            printf("%lf ", A[i][j]);
+        }
+        printf("\n");
+    }
+    */
+    printf("Matrix B:\n");
+    printf(" B0=== %lf\n", B[0]);
+    printf(" B1=== %lf\n", B[1]);
+    
+    for (int i = 0; i < size; i++) {
+        printf(" === %lf\n", B[i]);
+    }
+}
+
+void printBoundaryCondition(femProblem *theProblem, femBoundaryCondition *boundaryCondition) {
+    printf("=====================================\n");
+    printf("Domain: %s\n", boundaryCondition->domain->name);
+    
+    const char *typeStrings[] = {
+        "DIRICHLET_X", "DIRICHLET_Y", "NEUMANN_X", "NEUMANN_Y", "TANGENTIEL", "NORMAL"
+    };
+    printf("Type: %s\n", typeStrings[boundaryCondition->type]);
+
+    printf("Value: %lf\n", boundaryCondition->value);
+
+    printf("Elements:\n");
+    int *elem = boundaryCondition->domain->mesh->elem;
+    int nElem = boundaryCondition->domain->nElem;
+    for (int e = 0; e < nElem; e++) {
+        printf("%d , ", elem[e]);
+    }
+    printf("\n");
+    printf("nElem: %d\n", nElem);
+
+    printf("Nodes:\n");
+    int nLocalNode = boundaryCondition->domain->mesh->nLocalNode;
+    femNodes *nodes = boundaryCondition->domain->mesh->nodes;
+    for (int e = 0; e < nElem; e++) {
+        for (int i = 0; i < nLocalNode; i++) {
+            int node = elem[e * nLocalNode + i];
+            printf("Node %d: (%lf, %lf)\n", node, nodes->X[node], nodes->Y[node]);
+        }
+    }
+
+    int size = theProblem->nBoundaryConditions;
+    int shift = (boundaryCondition->type == DIRICHLET_X) ? 0 : 1;
+    int *constrainedNodes = theProblem->constrainedNodes;
+    
+    printf("Constrained Nodes:\n");
+    for (int e = 0; e < nElem; e++) {
+        for (int i = 0; i < nLocalNode; i++) {
+            int node = elem[e * nLocalNode + i];
+            int constrainedNodeIndex = 2 * node + shift;
+            printf("Constrained Node %d: %d\n", node, constrainedNodes[constrainedNodeIndex]);
+        }
+    }
+}
+
+
+void printValues(int myNode, double myValue, int size ,double *B) {
+    printf("myNode = %d  myValue = %f size = %d  B === %f\n", myNode , myValue , size , B[myNode]);
+
+}
+
+void  femFullSystemConstrain(femFullSystem *mySystem, int myNode, double myValue) 
 {
     double  **A, *B;
     int     i, size;
@@ -579,6 +653,7 @@ void  femFullSystemConstrain(femFullSystem *mySystem,
     B    = mySystem->B;
     size = mySystem->size;
     
+    printValues(myNode, myValue, size , B);
     for (i=0; i < size; i++) {
         B[i] -= myValue * A[i][myNode];
         A[i][myNode] = 0; }
@@ -588,6 +663,22 @@ void  femFullSystemConstrain(femFullSystem *mySystem,
     
     A[myNode][myNode] = 1;
     B[myNode] = myValue;
+    printValues(myNode, myValue, size , B);
+}
+
+void  femFullSystemConstrainNeumann(femFullSystem *mySystem, int myNode, double myValue) 
+{
+    double  **A, *B;
+    int     i, size;
+        
+    A    = mySystem->A;
+    B    = mySystem->B;
+    size = mySystem->size;
+    
+    printValues(myNode, myValue, size, B);
+    // Ajout de la valeur modifiée à B[myNode]
+    B[myNode] += myValue;
+    printValues(myNode, myValue, size, B);
 }
 
 
@@ -638,7 +729,9 @@ void femElasticityFree(femProblem *theProblem)
     free(theProblem->constrainedNodes);
     free(theProblem);
 }
-    
+
+
+
 void femElasticityAddBoundaryCondition(femProblem *theProblem, char *nameDomain, femBoundaryType type, double value)
 {
     int iDomain = geoGetDomain(nameDomain);
@@ -647,9 +740,10 @@ void femElasticityAddBoundaryCondition(femProblem *theProblem, char *nameDomain,
     femBoundaryCondition* theBoundary = malloc(sizeof(femBoundaryCondition));
     theBoundary->domain = theProblem->geometry->theDomains[iDomain];
     theBoundary->value = value;
-    theBoundary->type = type;
+    theBoundary->type = type;  //0 ou 1 ???
     theProblem->nBoundaryConditions++;
-    int size = theProblem->nBoundaryConditions;
+    int size = theProblem->nBoundaryConditions;  // le nombre de contraite contraite
+
     
     if (theProblem->conditions == NULL)
         theProblem->conditions = malloc(size*sizeof(femBoundaryCondition*));
@@ -657,17 +751,174 @@ void femElasticityAddBoundaryCondition(femProblem *theProblem, char *nameDomain,
         theProblem->conditions = realloc(theProblem->conditions, size*sizeof(femBoundaryCondition*));
     theProblem->conditions[size-1] = theBoundary;
     
+    int *elem = theBoundary->domain->elem; //tt les edges de la frontiere et chaque elem et defini par deux pts du segment
+    int nElem = theBoundary->domain->nElem; //nbr sur la frontiere
     
-    int shift;
-    if (type == DIRICHLET_X)  shift = 0;      
-    if (type == DIRICHLET_Y)  shift = 1;  
-    int *elem = theBoundary->domain->elem;
-    int nElem = theBoundary->domain->nElem;
-    for (int e=0; e<nElem; e++) {
-        for (int i=0; i<2; i++) {
-            int node = theBoundary->domain->mesh->elem[2*elem[e]+i];
-            theProblem->constrainedNodes[2*node+shift] = size-1; }}    
+    theBoundary->domain->elemUnique = malloc(nElem * sizeof(femElem*));
+
+    for (int i = 0; i < nElem; i++) {
+        theBoundary->domain->elemUnique[i].elemIndex = elem[i];
+    }
+    
+
+    if(type == DIRICHLET_X || type == DIRICHLET_Y ){
+        int shift;
+        if (type == DIRICHLET_X)  shift = 0;   //aucun décalage n'est nécessaire lors de l'accès à l'indice dans le tableau 
+        if (type == DIRICHLET_Y)  shift = 1;   //un décalage de 1 est appliqué lors de l'accès à l'indice dans le tableau d'une position vers la droite
+        
+        if (type == DIRICHLET_X || type == DIRICHLET_Y){
+            for (int e=0; e<nElem; e++) {
+                for (int i=0; i<2; i++) {  //regarde a chaqu'un des points
+                    int node = theBoundary->domain->mesh->elem[2*elem[e]+i];  //node est utilisée pour stocker l'indice du nœud dans le tableau (baleck pour neumann) 
+                    theProblem->constrainedNodes[2*node+shift] = size-1;  
+                    }
+                }    
+            }
+        }
+
+    if(type == NEUMANN_X || type == NEUMANN_Y ){
+        printf("RENTRE  NEUMANN=========================================================\n");
+        printf("nElem == %d  value  = %f \n" ,  nElem , theBoundary->value);
+        double val = theBoundary->value ;
+        int shiftN;
+        if (type == NEUMANN_X)  shiftN = 0;   //aucun décalage n'est nécessaire lors de l'accès à l'indice dans le tableau 
+        if (type == NEUMANN_Y)  shiftN = 1;
+
+        for (int e=0; e<nElem; e++) {
+            printf("=========================================================\n");
+            for (int i=0; i<2; i++) {  //regarde a chaqu'un des points                    
+                    int node = theBoundary->domain->mesh->elem[2*elem[e]+i];  //node est utilisée pour stocker l'indice du nœud dans le tableau (baleck pour neumann) 
+                    theProblem->constrainedNodes[2*node+shiftN] = size-1;     //indique juste si il y a une condition ou pas
+                    //theProblem->conditions[theConstrainedNodes[2*node+shiftN]] = size-1;
+                    printf("node = %d et constrainedNodes == %f  2*node+shiftN  = %d\n", node , theProblem->constrainedNodes[2*node+shiftN]  , 2*node+shiftN);
+                }
+            
+            
+            // Calcul de la différence de distance pour chaque élément
+            double x1 = theProblem->geometry->theNodes->X[theBoundary->domain->mesh->elem[2 * elem[e]]];
+            double y1 = theProblem->geometry->theNodes->Y[theBoundary->domain->mesh->elem[2 * elem[e]]];
+            double x2 = theProblem->geometry->theNodes->X[theBoundary->domain->mesh->elem[2 * elem[e] + 1]];
+            double y2 = theProblem->geometry->theNodes->Y[theBoundary->domain->mesh->elem[2 * elem[e] + 1]];
+            double distance = sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2));
+            
+            printf("value === %f   \n" , theProblem->conditions[size-1]->value);
+
+            theBoundary->domain->elemUnique[e].value = val * distance * 0.5;
+            //theBoundary->domain->elemUnique[e].value = theProblem->conditions[size-1]->value * distance;
+            //printf("valueDist = %f  ValueGood = %f  valeurElemUnique === %f \n" , theProblem->conditions[size-1]->value  , theBoundary->value  , theBoundary->domain->elemUnique[e].value);                
+            printf("Element %d:   value = %f  dist = %f  valeurElemUnique === %f \n" , e , val  , distance  , theBoundary->domain->elemUnique[e].value);
+            }
+        }      
 }
+
+void femElasticityAddBoundaryConditionXXX(femProblem *theProblem, char *nameDomain, femBoundaryType type, double value)
+{
+    int iDomain = geoGetDomain(nameDomain);
+    if (iDomain == -1)  Error("Undefined domain :-(");
+
+    femBoundaryCondition* theBoundary = malloc(sizeof(femBoundaryCondition));
+    theBoundary->domain = theProblem->geometry->theDomains[iDomain];
+    theBoundary->value = value;
+    theBoundary->type = type;  //0 ou 1 ???
+    theProblem->nBoundaryConditions++;
+    int size = theProblem->nBoundaryConditions;  // le nombre de contraite contraite
+
+    
+    if (theProblem->conditions == NULL)
+        theProblem->conditions = malloc(size*sizeof(femBoundaryCondition*));
+    else 
+        theProblem->conditions = realloc(theProblem->conditions, size*sizeof(femBoundaryCondition*));
+    theProblem->conditions[size-1] = theBoundary;
+    
+    int *elem = theBoundary->domain->elem; //tt les edges de la frontiere et chaque elem et defini par deux pts du segment
+    int nElem = theBoundary->domain->nElem; //nbr sur la frontiere
+    
+    theBoundary->domain->elemUnique = malloc(nElem * sizeof(femElem*));
+
+    for (int i = 0; i < nElem; i++) {
+        theBoundary->domain->elemUnique[i].elemIndex = elem[i];
+    }
+    
+
+    if(type == DIRICHLET_X || type == DIRICHLET_Y ){
+        int shift;
+        if (type == DIRICHLET_X)  shift = 0;   //aucun décalage n'est nécessaire lors de l'accès à l'indice dans le tableau 
+        if (type == DIRICHLET_Y)  shift = 1;   //un décalage de 1 est appliqué lors de l'accès à l'indice dans le tableau d'une position vers la droite
+        
+        if (type == DIRICHLET_X || type == DIRICHLET_Y){
+            for (int e=0; e<nElem; e++) {
+                for (int i=0; i<2; i++) {  //regarde a chaqu'un des points
+                    int node = theBoundary->domain->mesh->elem[2*elem[e]+i];  //node est utilisée pour stocker l'indice du nœud dans le tableau (baleck pour neumann) 
+                    theProblem->constrainedNodes[2*node+shift] = size-1;  
+                    }
+                }    
+            }
+        }
+
+    if(type == NEUMANN_X || type == NEUMANN_Y ){
+        printf("RENTRE  NEUMANN=========================================================\n");
+        printf("nElem == %d  value  = %f \n" ,  nElem , theBoundary->value);
+        double val = theBoundary->value ;
+        int shiftN;
+        if (type == NEUMANN_X)  shiftN = 0;   //aucun décalage n'est nécessaire lors de l'accès à l'indice dans le tableau 
+        if (type == NEUMANN_Y)  shiftN = 1;
+
+        for (int e=0; e<nElem; e++) {
+            printf("=========================================================\n");
+            for (int i=0; i<2; i++) {  //regarde a chaqu'un des points                    
+                    int node = theBoundary->domain->mesh->elem[2*elem[e]+i];  //node est utilisée pour stocker l'indice du nœud dans le tableau (baleck pour neumann) 
+                    theProblem->constrainedNodes[2*node+shiftN] = size-1;     //indique juste si il y a une condition ou pas
+                    printf("node = %d et constrainedNodes == %f  2*node+shiftN  = %d\n", node , theProblem->constrainedNodes[2*node+shiftN]  , 2*node+shiftN);
+                }
+            
+            
+            // Calcul de la différence de distance pour chaque élément
+            double x1 = theProblem->geometry->theNodes->X[theBoundary->domain->mesh->elem[2 * elem[e]]];
+            double y1 = theProblem->geometry->theNodes->Y[theBoundary->domain->mesh->elem[2 * elem[e]]];
+            double x2 = theProblem->geometry->theNodes->X[theBoundary->domain->mesh->elem[2 * elem[e] + 1]];
+            double y2 = theProblem->geometry->theNodes->Y[theBoundary->domain->mesh->elem[2 * elem[e] + 1]];
+            double distance = sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2));
+            
+            printf("value === %f   \n" , theProblem->conditions[size-1]->value);
+
+            theBoundary->domain->elemUnique[e].value = val * distance * 0.5;
+            //theBoundary->domain->elemUnique[e].value = theProblem->conditions[size-1]->value * distance;
+            //printf("valueDist = %f  ValueGood = %f  valeurElemUnique === %f \n" , theProblem->conditions[size-1]->value  , theBoundary->value  , theBoundary->domain->elemUnique[e].value);                
+            printf("Element %d:   value = %f  dist = %f  valeurElemUnique === %f \n" , e , val  , distance  , theBoundary->domain->elemUnique[e].value);
+            }
+        }      
+}
+
+
+
+/* 
+    printf("Domain: %s\n", nameDomain);
+    printf("Value: %f\n", value);  //valeurs mise donc ce qu'on veux
+    printf("Type: %d\n", type);
+    printf("nBoundaryConditions: %d\n", theProblem->nBoundaryConditions);
+    printf("size: %d\n", size);
+    printf("======================= \n");
+
+    if(type == NEUMANN_X || type == NEUMANN_Y ){
+        printf("==================neuwmannnnnn===== \n");
+        int shiftN;
+        if (type == NEUMANN_X)  shiftN = 0;   //aucun décalage n'est nécessaire lors de l'accès à l'indice dans le tableau 
+        if (type == NEUMANN_Y)  shiftN = 1;
+        for (int e=0; e<nElem; e++) {
+            printf("=========================================================\n");
+            printf("e=== %f  nElem == %f \n" , e , nElem);
+                    // Calcul de la différence de distance pour chaque élément
+                    double x1 = theProblem->geometry->theNodes->X[theBoundary->domain->mesh->elem[2 * elem[e]]];
+                    double y1 = theProblem->geometry->theNodes->Y[theBoundary->domain->mesh->elem[2 * elem[e]]];
+                    double x2 = theProblem->geometry->theNodes->X[theBoundary->domain->mesh->elem[2 * elem[e] + 1]];
+                    double y2 = theProblem->geometry->theNodes->Y[theBoundary->domain->mesh->elem[2 * elem[e] + 1]];
+                    double distance = sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2));
+                    printf("Element %d: Distance = %lf\n", e, distance);
+                }
+        }
+            
+    }
+*/    
 
 void femElasticityPrint(femProblem *theProblem)  
 {    
