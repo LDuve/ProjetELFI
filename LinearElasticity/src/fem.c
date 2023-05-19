@@ -536,6 +536,57 @@ void femFullSystemPrint(femFullSystem *mySystem)
         printf(" :  %+.1e \n",B[i]); }
 }
 
+
+int calculateBandwidth(double **A, int size) {
+    int bandwidth = 0;    
+    for (int i = 0; i < size; i++) {
+        for (int j = 0; j < size; j++) {
+            if (A[i][j] != 0) {
+                int distance = abs(j - i);
+                if (distance > bandwidth) {
+                    bandwidth = distance;
+                }
+            }
+        }
+    }
+    
+    return bandwidth;
+}
+
+
+double* femFullSystemEliminateBande(femFullSystem *mySystem)
+{
+    double  **A, *B, factor;
+    int     i, j, k, jend, size, band;
+    A    = mySystem->A;
+    B    = mySystem->B;
+    size = mySystem->size;
+    band = calculateBandwidth(A, size);
+
+    /* Incomplete Cholesky factorization */ 
+
+    for (k=0; k < size; k++) {
+        if ( fabs(A[k][k]) <= 1e-4 ) {
+            Error("Cannot eleminate with such a pivot"); }
+        jend = fmin(k + band,size);
+        for (i = k+1 ; i <  jend; i++) {
+            factor = A[k][i] / A[k][k];
+            for (j = i ; j < jend; j++) 
+                A[i][j] = A[i][j] - A[k][j] * factor;
+            B[i] = B[i] - B[k] * factor; }}
+        
+    /* Back-substitution */
+
+    for (i = (size-1); i >= 0 ; i--) {
+        factor = 0;
+        jend = fmin(i + band,size);
+        for (j = i+1 ; j < jend; j++)
+            factor += A[i][j] * B[j];
+        B[i] = ( B[i] - factor)/A[i][i]; }
+
+    return(mySystem->B);
+}
+
 double* femFullSystemEliminate(femFullSystem *mySystem)
 {
     double  **A, *B, factor;
@@ -569,7 +620,47 @@ double* femFullSystemEliminate(femFullSystem *mySystem)
     return(mySystem->B);    
 }
 
+double* femFullSystemEliminateFrontal(femFullSystem *mySystem)
+{
+    double  **A, *B, factor;
+    int     i, j, k, size;
+    
+    A    = mySystem->A;
+    B    = mySystem->B;
+    size = mySystem->size;
 
+    /* Frontal elimination */
+
+    for (k = 0; k < size; k++) {
+        if (fabs(A[k][k]) <= 1e-16) {
+            printf("Pivot index %d  ", k);
+            printf("Pivot value %e  ", A[k][k]);
+            Error("Cannot eliminate with such a pivot");
+        }
+
+        for (i = k + 1; i < size; i++) {
+            if (A[i][k] != 0) {
+                factor = A[i][k] / A[k][k];
+
+                for (j = k + 1; j < size; j++)
+                    A[i][j] -= factor * A[k][j];
+
+                B[i] -= factor * B[k];
+            }
+        }
+    }
+
+    /* Back-substitution */
+
+    for (i = size - 1; i >= 0; i--) {
+        factor = 0;
+        for (j = i + 1; j < size; j++)
+            factor += A[i][j] * B[j];
+        B[i] = (B[i] - factor) / A[i][i];
+    }
+
+    return mySystem->B;
+}
 
 void printMatrices(femFullSystem *system) {
     
@@ -653,7 +744,7 @@ void  femFullSystemConstrain(femFullSystem *mySystem, int myNode, double myValue
     B    = mySystem->B;
     size = mySystem->size;
     
-    printValues(myNode, myValue, size , B);
+    //printValues(myNode, myValue, size , B);
     for (i=0; i < size; i++) {
         B[i] -= myValue * A[i][myNode];
         A[i][myNode] = 0; }
@@ -663,7 +754,7 @@ void  femFullSystemConstrain(femFullSystem *mySystem, int myNode, double myValue
     
     A[myNode][myNode] = 1;
     B[myNode] = myValue;
-    printValues(myNode, myValue, size , B);
+    //printValues(myNode, myValue, size , B);
 }
 
 void  femFullSystemConstrainNeumann(femFullSystem *mySystem, int myNode, double myValue) 
@@ -675,10 +766,10 @@ void  femFullSystemConstrainNeumann(femFullSystem *mySystem, int myNode, double 
     B    = mySystem->B;
     size = mySystem->size;
     
-    printValues(myNode, myValue, size, B);
+    //printValues(myNode, myValue, size, B);
     // Ajout de la valeur modifiée à B[myNode]
     B[myNode] += myValue;
-    printValues(myNode, myValue, size, B);
+    //printValues(myNode, myValue, size, B);
 }
 
 
@@ -690,7 +781,7 @@ femProblem *femElasticityCreate(femGeo* theGeometry,
     theProblem->nu  = nu;
     theProblem->g   = g;
     theProblem->rho = rho;
-    
+    theGeometry->rayon = theGeometry->LxPlate;
     if (iCase == PLANAR_STRESS) {
         theProblem->A = E/(1-nu*nu);
         theProblem->B = E*nu/(1-nu*nu);
@@ -777,20 +868,20 @@ void femElasticityAddBoundaryCondition(femProblem *theProblem, char *nameDomain,
         }
 
     if(type == NEUMANN_X || type == NEUMANN_Y ){
-        printf("RENTRE  NEUMANN=========================================================\n");
-        printf("nElem == %d  value  = %f \n" ,  nElem , theBoundary->value);
+        //printf("RENTRE  NEUMANN=========================================================\n");
+        //printf("nElem == %d  value  = %f \n" ,  nElem , theBoundary->value);
         double val = theBoundary->value ;
         int shiftN;
         if (type == NEUMANN_X)  shiftN = 0;   //aucun décalage n'est nécessaire lors de l'accès à l'indice dans le tableau 
         if (type == NEUMANN_Y)  shiftN = 1;
 
         for (int e=0; e<nElem; e++) {
-            printf("=========================================================\n");
+            //printf("=========================================================\n");
             for (int i=0; i<2; i++) {  //regarde a chaqu'un des points                    
                     int node = theBoundary->domain->mesh->elem[2*elem[e]+i];  //node est utilisée pour stocker l'indice du nœud dans le tableau (baleck pour neumann) 
                     theProblem->constrainedNodes[2*node+shiftN] = size-1;     //indique juste si il y a une condition ou pas
                     //theProblem->conditions[theConstrainedNodes[2*node+shiftN]] = size-1;
-                    printf("node = %d et constrainedNodes == %f  2*node+shiftN  = %d\n", node , theProblem->constrainedNodes[2*node+shiftN]  , 2*node+shiftN);
+                    //printf("node = %d et constrainedNodes == %f  2*node+shiftN  = %d\n", node , theProblem->constrainedNodes[2*node+shiftN]  , 2*node+shiftN);
                 }
             
             
@@ -801,12 +892,12 @@ void femElasticityAddBoundaryCondition(femProblem *theProblem, char *nameDomain,
             double y2 = theProblem->geometry->theNodes->Y[theBoundary->domain->mesh->elem[2 * elem[e] + 1]];
             double distance = sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2));
             
-            printf("value === %f   \n" , theProblem->conditions[size-1]->value);
+            //printf("value === %f   \n" , theProblem->conditions[size-1]->value);
 
             theBoundary->domain->elemUnique[e].value = val * distance * 0.5;
             //theBoundary->domain->elemUnique[e].value = theProblem->conditions[size-1]->value * distance;
             //printf("valueDist = %f  ValueGood = %f  valeurElemUnique === %f \n" , theProblem->conditions[size-1]->value  , theBoundary->value  , theBoundary->domain->elemUnique[e].value);                
-            printf("Element %d:   value = %f  dist = %f  valeurElemUnique === %f \n" , e , val  , distance  , theBoundary->domain->elemUnique[e].value);
+            //printf("Element %d:   value = %f  dist = %f  valeurElemUnique === %f \n" , e , val  , distance  , theBoundary->domain->elemUnique[e].value);
             }
         }      
 }

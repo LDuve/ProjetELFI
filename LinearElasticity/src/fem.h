@@ -11,6 +11,7 @@
 #ifndef _FEM_H_
 #define _FEM_H_
 
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -59,7 +60,7 @@ typedef struct {
 } femDomain;
 
 typedef struct {
-    double LxPlate, LyPlate , LxBar , LyBar;
+    double LxPlate, LyPlate , LxBar , LyBar,rayon;
     double h;
     femElementType elementType;
     double (*geoSize)(double x, double y);
@@ -110,6 +111,7 @@ typedef struct {
     femDiscrete *space;
     femIntegration *rule;
     femFullSystem *system;
+    int bandwidth;
 } femProblem;
 
 
@@ -138,6 +140,7 @@ void                femElasticityFree(femProblem *theProblem);
 void                femElasticityPrint(femProblem *theProblem);
 void                femElasticityAddBoundaryCondition(femProblem *theProblem, char *nameDomain, femBoundaryType type, double value);
 double*             femElasticitySolve(femProblem *theProblem);
+double              *femElasticitySolveSym(femProblem *theProblem);
 
 femIntegration*     femIntegrationCreate(int n, femElementType type);
 void                femIntegrationFree(femIntegration *theRule);
@@ -169,4 +172,8 @@ void printMatrices(femFullSystem *system);
 void  femFullSystemConstrainNeumann(femFullSystem *mySystem, int myNode, double myValue);
 void printValues(int myNode, double myValue, int size,double *B);
 void                femElasticityAddBoundaryConditionXXX(femProblem *theProblem, char *nameDomain, femBoundaryType type, double value);
+
+int calculateBandwidth(double **A, int size);
+double* femFullSystemEliminateBande(femFullSystem *mySystem);
+double* femFullSystemEliminateFrontal(femFullSystem *mySystem);
 #endif
