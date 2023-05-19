@@ -14,15 +14,15 @@
 
 int main(void)
 {  
-    femGeo* theGeometry = geoGetGeometry();   
+    femGeo* theGeometry = geoGetGeometry();
     geoMeshRead("../data/mesh.txt");
     femProblem* theProblem = femElasticityRead(theGeometry,"../data/problem.txt");
     femElasticityPrint(theProblem);
-    double *theSoluce = femElasticitySolve(theProblem); 
+    double *theSoluce = femElasticitySolve(theProblem);
     femNodes *theNodes = theGeometry->theNodes;
     femFieldWrite(theNodes->nNodes,2,&theSoluce[0],"../data/U.txt");
     femFieldWrite(theNodes->nNodes,2,&theSoluce[1],"../data/V.txt");
-    femElasticityFree(theProblem); 
+    femElasticityFree(theProblem);
     geoFree();
 
 
@@ -88,20 +88,70 @@ int main(void)
     //femElasticityAddBoundaryCondition(theProblem,"platGauche", DIRICHLET_Y ,0.0);
     femElasticityAddBoundaryCondition(theProblem,"gauche",DIRICHLET_X,0.0);
     femElasticityAddBoundaryCondition(theProblem,"dessus", DIRICHLET_Y ,0.0);
-    femElasticityAddBoundaryCondition(theProblem,"droite",DIRICHLET_X,0.0);              //DIRICHLET_X,DIRICHLET_Y,NEUMANN_X,NEUMANN_Y,TANGENTIEL,NORMAL
+    //femElasticityAddBoundaryCondition(theProblem,"droite",DIRICHLET_X,0.0);              //DIRICHLET_X,DIRICHLET_Y,NEUMANN_X,NEUMANN_Y,TANGENTIEL,NORMAL
     //femElasticityAddBoundaryCondition(theProblem,"platDroite", DIRICHLET_Y ,0.0);
-    //femElasticityAddBoundaryCondition(theProblem,"petitDroite",NEUMANN_Y,500000.0);
+    femElasticityAddBoundaryCondition(theProblem,"petitDroite",NEUMANN_X,1000000.0);
     //femElasticityAddBoundaryCondition(theProblem,"dessous", NEUMANN_X , 900.0);
     femElasticityPrint(theProblem);
     double *theSoluce = femElasticitySolve(theProblem); 
-
-
-
-
-
+ //=
 
 
     return 0;  
 }
 
- 
+
+int main(void)
+{  
+
+    double Lx = 1.0;
+    double Ly = 1.0;
+    double Bx = 0.5;
+    double By = 0.0;    
+
+    femGeo* theGeometry = geoGetGeometry();   
+
+    theGeometry->LxPlate     =  Lx;
+    theGeometry->LyPlate     =  Ly;
+    theGeometry->LxBar       =  Bx;
+    theGeometry->LyBar       =  By;
+    theGeometry->h           =  Lx * 0.25;
+    theGeometry->elementType = FEM_TRIANGLE;  //FEM_TRIANGLE  FEM_QUAD
+
+    geoMeshRead("../data/mesh.txt");    
+    
+    geoSetDomainName(0,"petitGauche");
+    geoSetDomainName(1,"platGauche");
+    geoSetDomainName(2,"gauche"); 
+    geoSetDomainName(3,"dessus");    
+    geoSetDomainName(4,"droite");  
+    geoSetDomainName(5,"platDroite");  
+    geoSetDomainName(6,"petitDroite");   
+    geoSetDomainName(7,"dessous");    
+
+
+    femProblem* theProblem = femElasticityRead(theGeometry,"../data/problem.txt");
+    
+    
+    //femElasticityAddBoundaryCondition(theProblem,"petitGauche",DIRICHLET_X,0.0);              //DIRICHLET_X,DIRICHLET_Y,NEUMANN_X,NEUMANN_Y,TANGENTIEL,NORMAL
+    //femElasticityAddBoundaryCondition(theProblem,"platGauche", DIRICHLET_Y ,0.0);
+    femElasticityAddBoundaryCondition(theProblem,"gauche",DIRICHLET_X,0.0);
+    femElasticityAddBoundaryCondition(theProblem,"dessus", DIRICHLET_Y ,0.0);
+    femElasticityAddBoundaryCondition(theProblem,"droite",DIRICHLET_X,0.0);              //DIRICHLET_X,DIRICHLET_Y,NEUMANN_X,NEUMANN_Y,TANGENTIEL,NORMAL
+    //femElasticityAddBoundaryCondition(theProblem,"platDroite", DIRICHLET_Y ,0.0);
+    //femElasticityAddBoundaryCondition(theProblem,"petitDroite",NEUMANN_Y,500000.0);
+    //femElasticityAddBoundaryCondition(theProblem,"dessous", NEUMANN_X , 900.0);
+    
+    
+    femElasticityPrint(theProblem);
+    double *theSoluce = femElasticitySolve(theProblem); 
+    femNodes *theNodes = theGeometry->theNodes;
+
+
+    femFieldWrite(theNodes->nNodes,2,&theSoluce[0],"../data/U.txt");
+    femFieldWrite(theNodes->nNodes,2,&theSoluce[1],"../data/V.txt");
+    femElasticityFree(theProblem); 
+    geoFree();
+
+    return 0;  
+}

@@ -69,6 +69,10 @@ int main(void)
 //
 //  -2- Creation probleme 
 //
+    //Numéro de solveur 1:Full, 2:Bande, 3:Frontal
+    int solvertype =1;
+    //Numéro de problème 5:normal, 6:axysimétrique
+    int symétrie = 5;
     
     double E   = 211.e10;
     double nu  = 0.3;
@@ -84,7 +88,12 @@ int main(void)
     femElasticityAddBoundaryCondition(theProblem,"petitDroite",NEUMANN_X,1000000.0);
     //femElasticityAddBoundaryCondition(theProblem,"dessous", NEUMANN_X , 900.0);
     femElasticityPrint(theProblem);
-    double *theSoluce = femElasticitySolve(theProblem); 
+    double* theSoluce;
+    if(symétrie==5){
+        theSoluce = femElasticitySolve(theProblem, solvertype);
+    }
+    else{theSoluce = femElasticitySolveSym(theProblem, solvertype);}
+
    
 //
 //  -3- Deformation du maillage pour le plot final
