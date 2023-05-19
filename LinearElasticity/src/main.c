@@ -21,7 +21,7 @@ int main(void)
     double Lx = 1.0;
     double Ly = 1.0;
     double Bx = 0.5;
-    double By = 0.0;    
+    double By = 2.0;    
       
     geoInitialize();
     femGeo* theGeometry = geoGetGeometry();
@@ -35,7 +35,9 @@ int main(void)
   
 //    geoMeshGenerateGeo();
 //    geoMeshGenerate();
-    geoMeshGenerateGeoProjet();
+
+
+      geoMeshGenerateGeoProjet();
 //    geoMeshGenerateProjecteur();
 
 //  geoMeshGenerateBar();   
@@ -46,20 +48,19 @@ int main(void)
 
    //pour geoMeshGenerateGeoProjet
     geoSetDomainName(0,"petitGauche");
-    geoSetDomainName(1,"platGauche");
-    geoSetDomainName(2,"gauche"); 
     geoSetDomainName(3,"dessus");    
     geoSetDomainName(4,"droite");   
     geoSetDomainName(5,"platDroite"); 
     geoSetDomainName(6,"petitDroite");    
     geoSetDomainName(7,"dessous");   
 
+
 /*
     //pour geoMeshGenerateBar
     geoSetDomainName(0,"gauche");
     geoSetDomainName(1,"dessus");
     geoSetDomainName(2,"droite"); 
-    geoSetDomainName(3,"dessus");    
+    geoSetDomainName(3,"dessous");    
 */
 /*
    //pour geoMeshGenerateProjecteur
@@ -80,18 +81,18 @@ int main(void)
     //Numéro de problème 5:normal, 6:axysimétrique
     int symétrie = 5;
     
-    double E   = 211.e10;
+    double E   = 12e6;
     double nu  = 0.3;
-    double rho = 7.85e3; 
-    double g   = 9.81;
+    double rho = 1000; 
+    double g   = 9.81e-2;
     femProblem* theProblem = femElasticityCreate(theGeometry,E,nu,rho,g,PLANAR_STRESS);  // PLANAR_STRAIN PLANAR_STRESS AXISYM
     //femElasticityAddBoundaryCondition(theProblem,"petitGauche",DIRICHLET_X,0.0);              //DIRICHLET_X,DIRICHLET_Y,NEUMANN_X,NEUMANN_Y,TANGENTIEL,NORMAL
     //femElasticityAddBoundaryCondition(theProblem,"platGauche", DIRICHLET_Y ,0.0);
-    femElasticityAddBoundaryCondition(theProblem,"gauche",DIRICHLET_X,0.0);
+    //femElasticityAddBoundaryCondition(theProblem,"gauche",DIRICHLET_X,0.0);
     femElasticityAddBoundaryCondition(theProblem,"dessus", DIRICHLET_Y ,0.0);
     //femElasticityAddBoundaryCondition(theProblem,"droite",DIRICHLET_X,0.0);              //DIRICHLET_X,DIRICHLET_Y,NEUMANN_X,NEUMANN_Y,TANGENTIEL,NORMAL
     //femElasticityAddBoundaryCondition(theProblem,"platDroite", DIRICHLET_Y ,0.0);
-    femElasticityAddBoundaryCondition(theProblem,"petitDroite",NEUMANN_X,1000000.0);
+    //femElasticityAddBoundaryCondition(theProblem,"petitDroite",NEUMANN_X,1000000.0);
     //femElasticityAddBoundaryCondition(theProblem,"dessous", NEUMANN_X , 900.0);
     femElasticityPrint(theProblem);
     double* theSoluce;

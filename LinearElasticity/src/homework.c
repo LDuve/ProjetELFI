@@ -66,7 +66,7 @@ void geoMeshGenerateGeoProjet() {
         gmshOptionSetNumber("Mesh.SaveAll",1,&ierr);
         gmshModelMeshGenerate(2,&ierr);  }
 
-    gmshFltkRun(&ierr);
+    //gmshFltkRun(&ierr);
 }
 
 //juste la barre
@@ -83,9 +83,9 @@ void geoMeshGenerateBar() {
 
 
     int p1 = gmshModelGeoAddPoint(-LxBar/2, -h/2, 0., lc, 1, &ierr);
-    int p2 = gmshModelGeoAddPoint(-LxBar/2,  h/2, 0., lc, 4, &ierr);
+    int p2 = gmshModelGeoAddPoint(-LxBar/2,  h/2, 0., lc, 2, &ierr);
     int p3 = gmshModelGeoAddPoint( LxBar/2,  h/2, 0., lc, 3, &ierr);
-    int p4 = gmshModelGeoAddPoint( LxBar/2, -h/2, 0., lc, 2, &ierr);
+    int p4 = gmshModelGeoAddPoint( LxBar/2, -h/2, 0., lc, 4, &ierr);
     
     
 
