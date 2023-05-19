@@ -31,9 +31,10 @@ void geoInitialize()
     theGeometry.theDomains = NULL;
 }
 
-
-void geoFree()
+void geoFinalize() 
 {
+    int ierr;
+    
     if (theGeometry.theNodes) {
         free(theGeometry.theNodes->X);
         free(theGeometry.theNodes->Y);
@@ -48,14 +49,7 @@ void geoFree()
         free(theGeometry.theDomains[i]->elem);
         free(theGeometry.theDomains[i]);  }
     free(theGeometry.theDomains);
-
-}
-
-void geoFinalize() 
-{
-     int ierr;
-     geoFree();
-     gmshFinalize(&ierr); ErrorGmsh(ierr);
+    gmshFinalize(&ierr); ErrorGmsh(ierr);
 }
 
 
@@ -541,6 +535,57 @@ void femFullSystemPrint(femFullSystem *mySystem)
         printf(" :  %+.1e \n",B[i]); }
 }
 
+
+int calculateBandwidth(double **A, int size) {
+    int bandwidth = 0;    
+    for (int i = 0; i < size; i++) {
+        for (int j = 0; j < size; j++) {
+            if (A[i][j] != 0) {
+                int distance = abs(j - i);
+                if (distance > bandwidth) {
+                    bandwidth = distance;
+                }
+            }
+        }
+    }
+    
+    return bandwidth;
+}
+
+
+double* femFullSystemEliminateBande(femFullSystem *mySystem)
+{
+    double  **A, *B, factor;
+    int     i, j, k, jend, size, band;
+    A    = mySystem->A;
+    B    = mySystem->B;
+    size = mySystem->size;
+    band = calculateBandwidth(A, size);
+
+    /* Incomplete Cholesky factorization */ 
+
+    for (k=0; k < size; k++) {
+        if ( fabs(A[k][k]) <= 1e-4 ) {
+            Error("Cannot eleminate with such a pivot"); }
+        jend = fmin(k + band,size);
+        for (i = k+1 ; i <  jend; i++) {
+            factor = A[k][i] / A[k][k];
+            for (j = i ; j < jend; j++) 
+                A[i][j] = A[i][j] - A[k][j] * factor;
+            B[i] = B[i] - B[k] * factor; }}
+        
+    /* Back-substitution */
+
+    for (i = (size-1); i >= 0 ; i--) {
+        factor = 0;
+        jend = fmin(i + band,size);
+        for (j = i+1 ; j < jend; j++)
+            factor += A[i][j] * B[j];
+        B[i] = ( B[i] - factor)/A[i][i]; }
+
+    return(mySystem->B);
+}
+
 double* femFullSystemEliminate(femFullSystem *mySystem)
 {
     double  **A, *B, factor;
@@ -574,8 +619,51 @@ double* femFullSystemEliminate(femFullSystem *mySystem)
     return(mySystem->B);    
 }
 
-void  femFullSystemConstrain(femFullSystem *mySystem, 
-                             int myNode, double myValue) 
+double* femFullSystemEliminateFrontal(femFullSystem *mySystem)
+{
+    double  **A, *B, factor;
+    int     i, j, k, size;
+    
+    A    = mySystem->A;
+    B    = mySystem->B;
+    size = mySystem->size;
+
+    /* Frontal elimination */
+
+    for (k = 0; k < size; k++) {
+        if (fabs(A[k][k]) <= 1e-16) {
+            printf("Pivot index %d  ", k);
+            printf("Pivot value %e  ", A[k][k]);
+            Error("Cannot eliminate with such a pivot");
+        }
+
+        for (i = k + 1; i < size; i++) {
+            if (A[i][k] != 0) {
+                factor = A[i][k] / A[k][k];
+
+                for (j = k + 1; j < size; j++)
+                    A[i][j] -= factor * A[k][j];
+
+                B[i] -= factor * B[k];
+            }
+        }
+    }
+
+    /* Back-substitution */
+
+    for (i = size - 1; i >= 0; i--) {
+        factor = 0;
+        for (j = i + 1; j < size; j++)
+            factor += A[i][j] * B[j];
+        B[i] = (B[i] - factor) / A[i][i];
+    }
+
+    return mySystem->B;
+}
+
+
+
+void  femFullSystemConstrain(femFullSystem *mySystem, int myNode, double myValue) 
 {
     double  **A, *B;
     int     i, size;
@@ -593,6 +681,14 @@ void  femFullSystemConstrain(femFullSystem *mySystem,
     
     A[myNode][myNode] = 1;
     B[myNode] = myValue;
+
+}
+
+void  femFullSystemConstrainNeumann(femFullSystem *mySystem, int myNode, double myValue) 
+{
+    double  *B;        
+    B    = mySystem->B;
+    B[myNode] += myValue;
 }
 
 
@@ -604,7 +700,7 @@ femProblem *femElasticityCreate(femGeo* theGeometry,
     theProblem->nu  = nu;
     theProblem->g   = g;
     theProblem->rho = rho;
-    
+    theGeometry->rayon = theGeometry->LxPlate;
     if (iCase == PLANAR_STRESS) {
         theProblem->A = E/(1-nu*nu);
         theProblem->B = E*nu/(1-nu*nu);
@@ -643,7 +739,9 @@ void femElasticityFree(femProblem *theProblem)
     free(theProblem->constrainedNodes);
     free(theProblem);
 }
-    
+
+
+
 void femElasticityAddBoundaryCondition(femProblem *theProblem, char *nameDomain, femBoundaryType type, double value)
 {
     int iDomain = geoGetDomain(nameDomain);
@@ -652,27 +750,62 @@ void femElasticityAddBoundaryCondition(femProblem *theProblem, char *nameDomain,
     femBoundaryCondition* theBoundary = malloc(sizeof(femBoundaryCondition));
     theBoundary->domain = theProblem->geometry->theDomains[iDomain];
     theBoundary->value = value;
-    theBoundary->type = type;
+    theBoundary->type = type;  
     theProblem->nBoundaryConditions++;
-    int size = theProblem->nBoundaryConditions;
-    
+    int size = theProblem->nBoundaryConditions;  
+
     if (theProblem->conditions == NULL)
         theProblem->conditions = malloc(size*sizeof(femBoundaryCondition*));
     else 
         theProblem->conditions = realloc(theProblem->conditions, size*sizeof(femBoundaryCondition*));
     theProblem->conditions[size-1] = theBoundary;
     
+    int *elem = theBoundary->domain->elem; 
+    int nElem = theBoundary->domain->nElem; 
     
-    int shift;
-    if (type == DIRICHLET_X)  shift = 0;      
-    if (type == DIRICHLET_Y)  shift = 1;  
-    int *elem = theBoundary->domain->elem;
-    int nElem = theBoundary->domain->nElem;
-    for (int e=0; e<nElem; e++) {
-        for (int i=0; i<2; i++) {
-            int node = theBoundary->domain->mesh->elem[2*elem[e]+i];
-            theProblem->constrainedNodes[2*node+shift] = size-1; }}    
+    theBoundary->domain->elemUnique = malloc(nElem * sizeof(femElem*));
+
+    for (int i = 0; i < nElem; i++) {
+        theBoundary->domain->elemUnique[i].elemIndex = elem[i];
+    }
+    
+
+    if(type == DIRICHLET_X || type == DIRICHLET_Y ){
+        int shift;
+        if (type == DIRICHLET_X)  shift = 0;   
+        if (type == DIRICHLET_Y)  shift = 1;   
+        if (type == DIRICHLET_X || type == DIRICHLET_Y){
+            for (int e=0; e<nElem; e++) {
+                for (int i=0; i<2; i++) { 
+                    int node = theBoundary->domain->mesh->elem[2*elem[e]+i];  
+                    theProblem->constrainedNodes[2*node+shift] = size-1;  
+                    }
+                }    
+            }
+        }
+
+    if(type == NEUMANN_X || type == NEUMANN_Y ){
+        double val = theBoundary->value ;
+        int shiftN;
+        if (type == NEUMANN_X)  shiftN = 0;   
+        if (type == NEUMANN_Y)  shiftN = 1;
+
+        for (int e=0; e<nElem; e++) {
+            for (int i=0; i<2; i++) {                 
+                    int node = theBoundary->domain->mesh->elem[2*elem[e]+i];  
+                    theProblem->constrainedNodes[2*node+shiftN] = size-1;     
+                }
+
+            double x1 = theProblem->geometry->theNodes->X[theBoundary->domain->mesh->elem[2 * elem[e]]];
+            double y1 = theProblem->geometry->theNodes->Y[theBoundary->domain->mesh->elem[2 * elem[e]]];
+            double x2 = theProblem->geometry->theNodes->X[theBoundary->domain->mesh->elem[2 * elem[e] + 1]];
+            double y2 = theProblem->geometry->theNodes->Y[theBoundary->domain->mesh->elem[2 * elem[e] + 1]];
+            double distance = sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2));
+
+            theBoundary->domain->elemUnique[e].value = val * distance * 0.5;}
+        }      
 }
+ 
 
 void femElasticityPrint(femProblem *theProblem)  
 {    
@@ -698,137 +831,6 @@ void femElasticityPrint(femProblem *theProblem)
     printf(" ======================================================================================= \n\n");
 }
 
-
-void femElasticityWrite(femProblem *theProblem, const char *filename) 
-{
-   FILE* file = fopen(filename,"w");
- 
-   switch (theProblem->planarStrainStress) {
-      case PLANAR_STRESS : fprintf(file,"Type of problem    :  Planar stresses  \n"); break;
-      case PLANAR_STRAIN : fprintf(file,"Type of problem    :  Planar strains \n"); break;
-      case AXISYM        : fprintf(file,"Type of problem    :  Axi-symetric problem \n"); break;
-      default :            fprintf(file,"Type of problem    :  Undefined  \n"); break; }
-   fprintf(file,"Young modulus      : %14.7e  \n",theProblem->E);
-   fprintf(file,"Poisson ratio      : %14.7e  \n",theProblem->nu);
-   fprintf(file,"Mass density       : %14.7e  \n",theProblem->rho);
-   fprintf(file,"Gravity            : %14.7e  \n",theProblem->g);
-      
-      
-   for(int i=0; i < theProblem->nBoundaryConditions; i++) {
-        femBoundaryCondition *theCondition = theProblem->conditions[i];
-        double value = theCondition->value;
-        fprintf(file,"Boundary condition : ");
-        switch (theCondition->type) {
-            case DIRICHLET_X : fprintf(file," Dirichlet-X        = %14.7e ",value); break;
-            case DIRICHLET_Y : fprintf(file," Dirichlet-Y        = %14.7e ",value); break;
-            default :          fprintf(file," Undefined          = %14.7e ",value); break; }
-
-        fprintf(file,": %s\n",theCondition->domain->name); }
-   fclose(file);
-}
-
-femProblem* femElasticityRead(femGeo* theGeometry, const char *filename)
-{
-    FILE* file = fopen(filename,"r");
-    femProblem *theProblem = malloc(sizeof(femProblem));
-    theProblem->nBoundaryConditions = 0;
-    theProblem->conditions = NULL;
-    
-    int size = 2*theGeometry->theNodes->nNodes;
-    theProblem->constrainedNodes = malloc(size*sizeof(int));
-    for (int i=0; i < size; i++) 
-        theProblem->constrainedNodes[i] = -1;
-    
-    theProblem->geometry = theGeometry;  
-    if (theGeometry->theElements->nLocalNode == 3) {
-        theProblem->space    = femDiscreteCreate(3,FEM_TRIANGLE);
-        theProblem->rule     = femIntegrationCreate(3,FEM_TRIANGLE); }
-    if (theGeometry->theElements->nLocalNode == 4) {
-        theProblem->space    = femDiscreteCreate(4,FEM_QUAD);
-        theProblem->rule     = femIntegrationCreate(4,FEM_QUAD); }
-    theProblem->system   = femFullSystemCreate(size); 
-
-
-    char theLine[MAXNAME];
-    char theDomain[MAXNAME];
-    char theArgument[MAXNAME];
-    double value;
-    double typeCondition;
-    
-    while (!feof(file)){
-        ErrorScan(fscanf(file,"%19[^\n]s \n",(char *)&theLine));
-        if (strncasecmp(theLine,"Type of problem     ",19) == 0) {
-            ErrorScan(fscanf(file,":  %[^\n]s \n",(char *)&theArgument));
-            if (strncasecmp(theArgument,"Planar stresses",13) == 0)
-               theProblem->planarStrainStress = PLANAR_STRESS; 
-            if (strncasecmp(theArgument,"Planar strains",13) == 0)
-               theProblem->planarStrainStress = PLANAR_STRAIN; 
-            if (strncasecmp(theArgument,"Axi-symetric problem",13) == 0)
-               theProblem->planarStrainStress = AXISYM; }
-        if (strncasecmp(theLine,"Young modulus       ",19) == 0) {
-            ErrorScan(fscanf(file,":  %le\n",&theProblem->E)); }
-        if (strncasecmp(theLine,"Poisson ratio       ",19) == 0) {
-            ErrorScan(fscanf(file,":  %le\n",&theProblem->nu)); }
-        if (strncasecmp(theLine,"Mass density        ",19) == 0) {
-            ErrorScan(fscanf(file,":  %le\n",&theProblem->rho)); }
-        if (strncasecmp(theLine,"Gravity             ",19) == 0) {
-            ErrorScan(fscanf(file,":  %le\n",&theProblem->g)); }
-        if (strncasecmp(theLine,"Boundary condition  ",19) == 0) {
-            ErrorScan(fscanf(file,":  %19s = %le : %[^\n]s\n",(char *)&theArgument,&value,(char *)&theDomain));
-            if (strncasecmp(theArgument,"Dirichlet-X",19) == 0)
-                typeCondition = DIRICHLET_X;
-            if (strncasecmp(theArgument,"Dirichlet-Y",19) == 0)
-                typeCondition = DIRICHLET_Y;                
-            if (strncasecmp(theArgument,"Neumann-X",19) == 0)
-                typeCondition = NEUMANN_X;
-            if (strncasecmp(theArgument,"Neumann-Y",19) == 0)
-                typeCondition = NEUMANN_Y;                
-            femElasticityAddBoundaryCondition(theProblem,theDomain,typeCondition,value); }
-        ErrorScan(fscanf(file,"\n")); }
- 
-    int iCase = theProblem->planarStrainStress;
-    double E = theProblem->E;
-    double nu = theProblem->nu;
-    
-    if (iCase == PLANAR_STRESS) {
-        theProblem->A = E/(1-nu*nu);
-        theProblem->B = E*nu/(1-nu*nu);
-        theProblem->C = E/(2*(1+nu)); }
-    else if (iCase == PLANAR_STRAIN || iCase == AXISYM) {
-        theProblem->A = E*(1-nu)/((1+nu)*(1-2*nu));
-        theProblem->B = E*nu/((1+nu)*(1-2*nu));
-        theProblem->C = E/(2*(1+nu)); }
-
-
-    fclose(file);
-    return theProblem;
-}
-
-
-void femFieldWrite(int size, int shift, double* value, const char *filename) {
-    FILE* file = fopen(filename,"w");
-
-    fprintf(file, "Size %d \n", size);
-    for (int i=0; i < size; i++){
-          fprintf(file,"%14.7e",value[i*shift]);
-          if ((i+1) != size  && (i+1) % 3 == 0) fprintf(file,"\n"); }
-    fprintf(file,"\n");
-    fclose(file);
-}
-
-int femFieldRead(int* size, int shift, double* value, const char *filename) {
-    FILE* file = fopen(filename,"r");
-
-
-    ErrorScan(fscanf(file, "Size %d \n", size));
-    for (int i=0; i < *size; i++){
-          ErrorScan(fscanf(file,"%le",&value[i*shift]));
-          if ((i+1) != *size  && (i+1) % 3 == 0) ErrorScan(fscanf(file,"\n")); }
-
-    printf( "Reading field of size %d with shift %d\n", *size,shift);
-    fclose(file);
-    return *size;
-}
 
 
 
