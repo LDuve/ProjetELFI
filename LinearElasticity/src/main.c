@@ -79,9 +79,9 @@ int main(void)
     //femElasticityAddBoundaryCondition(theProblem,"platGauche", DIRICHLET_Y ,0.0);
     femElasticityAddBoundaryCondition(theProblem,"gauche",DIRICHLET_X,0.0);
     femElasticityAddBoundaryCondition(theProblem,"dessus", DIRICHLET_Y ,0.0);
-    femElasticityAddBoundaryCondition(theProblem,"droite",DIRICHLET_X,0.0);              //DIRICHLET_X,DIRICHLET_Y,NEUMANN_X,NEUMANN_Y,TANGENTIEL,NORMAL
+    //femElasticityAddBoundaryCondition(theProblem,"droite",DIRICHLET_X,0.0);              //DIRICHLET_X,DIRICHLET_Y,NEUMANN_X,NEUMANN_Y,TANGENTIEL,NORMAL
     //femElasticityAddBoundaryCondition(theProblem,"platDroite", DIRICHLET_Y ,0.0);
-    //femElasticityAddBoundaryCondition(theProblem,"petitDroite",NEUMANN_Y,500000.0);
+    femElasticityAddBoundaryCondition(theProblem,"petitDroite",NEUMANN_X,1000000.0);
     //femElasticityAddBoundaryCondition(theProblem,"dessous", NEUMANN_X , 900.0);
     femElasticityPrint(theProblem);
     double *theSoluce = femElasticitySolve(theProblem); 

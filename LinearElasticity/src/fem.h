@@ -171,7 +171,6 @@ void printBoundaryCondition(femProblem *theProblem, femBoundaryCondition *bounda
 void printMatrices(femFullSystem *system);
 void  femFullSystemConstrainNeumann(femFullSystem *mySystem, int myNode, double myValue);
 void printValues(int myNode, double myValue, int size,double *B);
-void                femElasticityAddBoundaryConditionXXX(femProblem *theProblem, char *nameDomain, femBoundaryType type, double value);
 
 int calculateBandwidth(double **A, int size);
 double* femFullSystemEliminateBande(femFullSystem *mySystem);
