@@ -42,29 +42,35 @@ int main(void)
     
 
     geoMeshImport();
-//    geoSetDomainName(0,"gauche");  //DIRICHLET_X
-//    geoSetDomainName(7,"Bottom");    //DIRICHLET_Y
 
 
-   //pour geoMeshGenerateGeoProjet();
+   //pour geoMeshGenerateGeoProjet
     geoSetDomainName(0,"petitGauche");
     geoSetDomainName(1,"platGauche");
-    geoSetDomainName(2,"gauche");  //DIRICHLET_X    /!\ -1
-    geoSetDomainName(3,"dessus");    //DIRICHLET_Y
-    geoSetDomainName(4,"droite");    //DIRICHLET_X
-    geoSetDomainName(5,"platDroite");  //DIRICHLET_X    /!\ -1
-    geoSetDomainName(6,"petitDroite");    //DIRICHLET_Y
-    geoSetDomainName(7,"dessous");    //DIRICHLET_X
-
-
+    geoSetDomainName(2,"gauche"); 
+    geoSetDomainName(3,"dessus");    
+    geoSetDomainName(4,"droite");   
+    geoSetDomainName(5,"platDroite"); 
+    geoSetDomainName(6,"petitDroite");    
+    geoSetDomainName(7,"dessous");   
 
 /*
-//juste la bar
-    geoSetDomainName(0,"gauche");  //DIRICHLET_X    /!\ -1
-    geoSetDomainName(1,"dessus");    //DIRICHLET_Y
-    geoSetDomainName(2,"droite");    //DIRICHLET_X    
-  
-  */  
+    //pour geoMeshGenerateBar
+    geoSetDomainName(0,"gauche");
+    geoSetDomainName(1,"dessus");
+    geoSetDomainName(2,"droite"); 
+    geoSetDomainName(3,"dessus");    
+*/
+/*
+   //pour geoMeshGenerateProjecteur
+    geoSetDomainName(0,"petitGauche");
+    geoSetDomainName(1,"dessusGauche");
+    geoSetDomainName(2,"milieu"); 
+    geoSetDomainName(3,"dessusDroite");    
+    geoSetDomainName(4,"petitDroite");   
+    geoSetDomainName(5,"dessous"); 
+*/
+ 
         
 //
 //  -2- Creation probleme 

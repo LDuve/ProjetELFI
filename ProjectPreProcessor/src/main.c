@@ -20,26 +20,57 @@ int main(void)
 //
 
     double Lx = 1.0;
-    double Ly = 1.0;     
+    double Ly = 1.0;   
+    double LxBx = 0.5;
+    double LyBy = 2.0;  
     geoInitialize();
     femGeo* theGeometry = geoGetGeometry();
     
     theGeometry->LxPlate     =  Lx;
-    theGeometry->LyPlate     =  Ly;     
+    theGeometry->LyPlate     =  Ly;  
+    theGeometry->LxBar       =  LxBx;
+    theGeometry->LyBar       =  LyBy;   
     theGeometry->h           =  Lx * 0.05;    
     theGeometry->elementType = FEM_QUAD;
   
 //    geoMeshGenerate();      // Utilisation de OpenCascade
     
 //  geoMeshGenerateGeo();   // Utilisation de outils de GMSH  
-                            // Attention : les entités sont différentes !
-                            // On a aussi inversé la géomtrie pour rire !
+                            // Attention : les entitï¿½s sont diffï¿½rentes !
+                            // On a aussi inversï¿½ la gï¿½omtrie pour rire !
                             
     geoMeshGenerateGeoFile("../data/mesh.geo");   // Lecture fichier geo
   
     geoMeshImport();
-    geoSetDomainName(0,"Symetry");
-    geoSetDomainName(7,"Bottom");
+ 
+   //pour geoMeshGenerateGeoProjet
+    geoSetDomainName(0,"petitGauche");
+    geoSetDomainName(1,"platGauche");
+    geoSetDomainName(2,"gauche"); 
+    geoSetDomainName(3,"dessus");    
+    geoSetDomainName(4,"droite");   
+    geoSetDomainName(5,"platDroite"); 
+    geoSetDomainName(6,"petitDroite");    
+    geoSetDomainName(7,"dessous");   
+
+/*
+    //pour geoMeshGenerateBar
+    geoSetDomainName(0,"gauche");
+    geoSetDomainName(1,"dessus");
+    geoSetDomainName(2,"droite"); 
+    geoSetDomainName(3,"dessus");    
+*/
+/*
+   //pour geoMeshGenerateProjecteur
+    geoSetDomainName(0,"petitGauche");
+    geoSetDomainName(1,"dessusGauche");
+    geoSetDomainName(2,"milieu"); 
+    geoSetDomainName(3,"dessusDroite");    
+    geoSetDomainName(4,"petitDroite");   
+    geoSetDomainName(5,"dessous"); 
+*/
+ 
+
     geoMeshWrite("../data/mesh.txt");
           
 //
@@ -51,14 +82,20 @@ int main(void)
     double rho = 7.85e3; 
     double g   = 9.81;
     femProblem* theProblem = femElasticityCreate(theGeometry,E,nu,rho,g,PLANAR_STRAIN);
-    femElasticityAddBoundaryCondition(theProblem,"Symetry",DIRICHLET_X,0.0);
-    femElasticityAddBoundaryCondition(theProblem,"Bottom",DIRICHLET_Y,0.0);
+    //femElasticityAddBoundaryCondition(theProblem,"petitGauche",DIRICHLET_X,0.0);              //DIRICHLET_X,DIRICHLET_Y,NEUMANN_X,NEUMANN_Y,TANGENTIEL,NORMAL
+    //femElasticityAddBoundaryCondition(theProblem,"platGauche", DIRICHLET_Y ,0.0);
+    femElasticityAddBoundaryCondition(theProblem,"gauche",DIRICHLET_X,0.0);
+    femElasticityAddBoundaryCondition(theProblem,"dessus", DIRICHLET_Y ,0.0);
+    femElasticityAddBoundaryCondition(theProblem,"droite",DIRICHLET_X,0.0);              //DIRICHLET_X,DIRICHLET_Y,NEUMANN_X,NEUMANN_Y,TANGENTIEL,NORMAL
+    //femElasticityAddBoundaryCondition(theProblem,"platDroite", DIRICHLET_Y ,0.0);
+    //femElasticityAddBoundaryCondition(theProblem,"petitDroite",NEUMANN_Y,500000.0);
+    //femElasticityAddBoundaryCondition(theProblem,"dessous", NEUMANN_X , 900.0);
     femElasticityPrint(theProblem);
     femElasticityWrite(theProblem,"../data/problem.txt");
  
 
 //
-//  -3- Champ de la taille de référence du maillage
+//  -3- Champ de la taille de rï¿½fï¿½rence du maillage
 //
 
     double *meshSizeField = malloc(theGeometry->theNodes->nNodes*sizeof(double));

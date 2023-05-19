@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+D:/Utilisateur/Documents/EPL/Q6/Elements finis/Projet/ProjetELFI/Project/src/fem.h
+stdio.h
+-
+stdlib.h
+-
+math.h
+-
+string.h
+-
+
+D:/Utilisateur/Documents/EPL/Q6/Elements finis/Projet/ProjetELFI/Project/src/main.c
+fem.h
+D:/Utilisateur/Documents/EPL/Q6/Elements finis/Projet/ProjetELFI/Project/src/fem.h
+

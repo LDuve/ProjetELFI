@@ -4,7 +4,7 @@ project(myFemProject)
 set(EXEC_NAME myFem)
 
 # link the aforementioned libraries
-add_executable(${EXEC_NAME} src/fem.c  src/homework.c src/main.c)
+add_executable(${EXEC_NAME} src/fem.c  src/homework.c src/main.c src/condition.c src/solveur.c)
 
 # set exec as the startup project in visual studio
 if (MSVC)

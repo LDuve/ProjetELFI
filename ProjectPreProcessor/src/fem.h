@@ -7,9 +7,9 @@
  *  All rights reserved.
  *
  */
-
 #ifndef _FEM_H_
 #define _FEM_H_
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,8 +27,7 @@
 #define MAXNAME 256
 
 typedef enum {FEM_TRIANGLE,FEM_QUAD} femElementType;
-typedef enum {DIRICHLET_X,DIRICHLET_Y,DIRICHLET_N,DIRICHLET_T,
-              NEUMANN_X,NEUMANN_Y,NEUMANN_N,NEUMANN_T} femBoundaryType;
+typedef enum {DIRICHLET_X,DIRICHLET_Y,NEUMANN_X,NEUMANN_Y,TANGENTIEL,NORMAL} femBoundaryType;
 typedef enum {PLANAR_STRESS,PLANAR_STRAIN,AXISYM} femElasticCase;
 
 
@@ -39,9 +38,14 @@ typedef struct {
 } femNodes;
 
 typedef struct {
+    int elemIndex;
+    double value;
+} femElem;
+
+typedef struct {
     int nLocalNode;
     int nElem;
-    int *elem;
+    int  *elem;  //tableau de int
     femNodes *nodes;
 } femMesh;
 
@@ -49,11 +53,13 @@ typedef struct {
     femMesh *mesh;
     int nElem;
     int *elem;
+    femElem *elemUnique;
     char name[MAXNAME];
+    femElem *Elem;
 } femDomain;
 
 typedef struct {
-    double LxPlate, LyPlate;
+    double LxPlate, LyPlate , LxBar , LyBar,rayon;
     double h;
     femElementType elementType;
     double (*geoSize)(double x, double y);
@@ -89,6 +95,7 @@ typedef struct {
     femDomain* domain;
     femBoundaryType type; 
     double value;
+    int *elem;
 } femBoundaryCondition;
 
 
@@ -103,8 +110,8 @@ typedef struct {
     femDiscrete *space;
     femIntegration *rule;
     femFullSystem *system;
+    int bandwidth;
 } femProblem;
-
 
 void                geoInitialize();
 femGeo*             geoGetGeometry();
@@ -159,6 +166,11 @@ void                femError(char *text, int line, char *file);
 void                femErrorScan(int test, int line, char *file);
 void                femErrorGmsh(int test, int line, char *file);
 void                femWarning(char *text, int line, char *file);
+
+void geoMeshGenerateGeoProjet();
+void geoMeshGenerateBarProjet();
+void geoMeshGenerateBar();
+void geoMeshGenerateProjecteur();
 
 
 #endif

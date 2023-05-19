@@ -416,48 +416,6 @@ void femFullSystemPrint(femFullSystem *mySystem)
         printf(" :  %+.1e \n",B[i]); }
 }
 
-double* femFullSystemEliminate(femFullSystem *mySystem)
-{
-    double  **A, *B, factor;
-    int     i, j, k, size;
-    
-    A    = mySystem->A;
-    B    = mySystem->B;
-    size = mySystem->size;
-    
-    /* Check for isolated node */
-    
-    for (k = 0; k < size/2; k++) {
-        if ((A[2*k][2*k] == 0) && (A[2*k+1][2*k+1] == 0)) {
-            printf("Warning : disconnected node %d\n", k);
-            A[2*k][2*k] = 1;
-            A[2*k+1][2*k+1] = 1; }}
-
-    
-    /* Gauss elimination */
-    
-    for (k=0; k < size; k++) {
-        if ( fabs(A[k][k]) <= 1e-16 ) {
-            printf("Pivot index %d  ",k);
-            printf("Pivot value %e  ",A[k][k]);
-            Error("Cannot eliminate with such a pivot"); }
-        for (i = k+1 ; i <  size; i++) {
-            factor = A[i][k] / A[k][k];
-            for (j = k+1 ; j < size; j++) 
-                A[i][j] = A[i][j] - A[k][j] * factor;
-            B[i] = B[i] - B[k] * factor; }}
-    
-    /* Back-substitution */
-    
-    for (i = size-1; i >= 0 ; i--) {
-        factor = 0;
-        for (j = i+1 ; j < size; j++)
-            factor += A[i][j] * B[j];
-        B[i] = ( B[i] - factor)/A[i][i]; }
-    
-    return(mySystem->B);    
-}
-
 
 
 femProblem *femElasticityCreate(femGeo* theGeometry, 

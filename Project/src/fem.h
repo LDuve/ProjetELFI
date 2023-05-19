@@ -131,7 +131,8 @@ femProblem*         femElasticityCreate(femGeo* theGeometry,
 void                femElasticityFree(femProblem *theProblem);
 void                femElasticityPrint(femProblem *theProblem);
 void                femElasticityAddBoundaryCondition(femProblem *theProblem, char *nameDomain, femBoundaryType type, double value);
-double*             femElasticitySolve(femProblem *theProblem);
+double              *femElasticitySolve(femProblem *theProblem, int solver);
+double              *femElasticitySolveSym(femProblem *theProblem, int solver);
 void                femElasticityWrite(femProblem *theProbconst, const char *filename);
 femProblem*         femElasticityRead(femGeo* theGeometry, const char *filename);
 
@@ -165,7 +166,6 @@ void                femWarning(char *text, int line, char *file);
 
 
 void                femFullSystemConstrainNeumann(femFullSystem *mySystem, int myNode, double myValue);
-double              *femElasticitySolveSym(femProblem *theProblem);
 int                 calculateBandwidth(double **A, int size);
 double*             femFullSystemEliminateBande(femFullSystem *mySystem);
 double*             femFullSystemEliminateFrontal(femFullSystem *mySystem);
