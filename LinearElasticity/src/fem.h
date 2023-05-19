@@ -139,8 +139,8 @@ femProblem*         femElasticityCreate(femGeo* theGeometry,
 void                femElasticityFree(femProblem *theProblem);
 void                femElasticityPrint(femProblem *theProblem);
 void                femElasticityAddBoundaryCondition(femProblem *theProblem, char *nameDomain, femBoundaryType type, double value);
-double*             femElasticitySolve(femProblem *theProblem);
-double              *femElasticitySolveSym(femProblem *theProblem);
+double*             femElasticitySolve(femProblem *theProblem, int solver);
+double              *femElasticitySolveSym(femProblem *theProblem, int solver);
 
 femIntegration*     femIntegrationCreate(int n, femElementType type);
 void                femIntegrationFree(femIntegration *theRule);

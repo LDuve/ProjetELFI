@@ -10,44 +10,7 @@ double geoSize(double x, double y){
 
     return h;
 }
-//enlever les carré
-void geoMeshGenerate() {
- 
-    int ierr;
 
-    double l = 5.;
-    double ha = 1.;
-
-    double px1 = 0.0;
-    double py1 = 0.0;
-    int idRect = gmshModelOccAddRectangle(px1,py1,0.0,l,3*ha,-1,0.0,&ierr); 
-    
-    double px2 = 0.0;
-    double py2 = ha;
-    double l2 = 2.0 * l / 5.0;
-    int idRect2 = gmshModelOccAddRectangle(px2,py2,0.0,l2,2*ha,-1,0.0,&ierr);    
-
-    double x3 = 3.0 * l / 5.0;
-    double y3 = ha;
-    double l3 = 2.0 * l / 5.0;
-    int idRect3 = gmshModelOccAddRectangle(x3,y3,0.0,l3,2*ha,-1,0.0,&ierr);  
-    
-    int rect[] = {2,idRect};
-    int rect2[] = {2,idRect2};
-    int rect3[] = {2,idRect3};
-
-    gmshModelOccCut(rect,2,rect2,2,NULL,NULL,NULL,NULL,NULL,-1,1,1,&ierr);
-    gmshModelOccCut(rect,2,rect3,2,NULL,NULL,NULL,NULL,NULL,-1,1,1,&ierr);
-
-    geoSetSizeCallback(geoSize);   
-    gmshModelOccSynchronize(&ierr);  
-    gmshOptionSetNumber("Mesh.SaveAll", 1, &ierr);
-    gmshModelMeshGenerate(2, &ierr); 
-
-    gmshFltkRun(&ierr);
-
-    return;
-}
 
 //contour avec les lignes
 void geoMeshGenerateGeoProjet() {
@@ -263,7 +226,7 @@ void geoMeshGenerateProjecteur() {
 
 
 
-double *femElasticitySolve(femProblem *theProblem)
+double *femElasticitySolve(femProblem *theProblem, int solver)
 {
 
     femFullSystem  *theSystem = theProblem->system;
@@ -344,11 +307,19 @@ double *femElasticitySolve(femProblem *theProblem)
             
             }
         }
-                 
-    return femFullSystemEliminateFrontal(theSystem);
+    
+    if(solver==1){
+        return femFullSystemEliminate(theSystem);
+    }
+    if(solver==2){
+        return femFullSystemEliminateBande(theSystem);
+    }
+    if(solver ==3){
+        return femFullSystemEliminateFrontal(theSystem);
+    }
 }
 
-double *femElasticitySolveSym(femProblem *theProblem)
+double *femElasticitySolveSym(femProblem *theProblem, int solver)
 {
 
     femFullSystem  *theSystem = theProblem->system;
@@ -439,7 +410,15 @@ double *femElasticitySolveSym(femProblem *theProblem)
             }
         }
                  
-    return femFullSystemEliminate(theSystem);
+    if(solver==1){
+        return femFullSystemEliminate(theSystem);
+    }
+    if(solver==2){
+        return femFullSystemEliminateBande(theSystem);
+    }
+    if(solver ==3){
+        return femFullSystemEliminateFrontal(theSystem);
+    }
 }
 
 
