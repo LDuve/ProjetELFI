@@ -27,6 +27,8 @@ void  femFullSystemConstrain(femFullSystem *mySystem,  int myNode, double myValu
     A[myNode][myNode] = 1;
     B[myNode] = myValue;
 }
+
+
 //condition de NEUMANN
 void  femFullSystemConstrainNeumann(femFullSystem *mySystem, int myNode, double myValue) 
 {
