@@ -90,7 +90,6 @@ int main(void)
 //  -3- Deformation du maillage pour le plot final
 //      Creation du champ de la norme du deplacement
 //
-    
     femNodes *theNodes = theGeometry->theNodes;
     double deformationFactor = 1e5;
     double *normDisplacement = malloc(theNodes->nNodes * sizeof(double));
