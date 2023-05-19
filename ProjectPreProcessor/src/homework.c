@@ -25,10 +25,10 @@ void geoMeshGenerateGeoProjet() {
     int ierr;
     double LxBar = theGeometry->LxBar ;
     double LyBar = theGeometry->LyBar;
-    double Lx = theGeometry->LxPlate;  // w=1
-    double Ly = theGeometry->LyPlate; // h=1
+    double Lx = theGeometry->LxPlate;  
+    double Ly = theGeometry->LyPlate; 
     double hTot = Ly+LyBar;
-    double lc = theGeometry->h;     //0.05
+    double lc = theGeometry->h;     
 
     int p1 = gmshModelGeoAddPoint( -2.5*Lx, 0., 0., lc, 1, &ierr);
     int p2 = gmshModelGeoAddPoint(-2.5*Lx,  Ly, 0., lc, 2, &ierr);
@@ -52,7 +52,7 @@ void geoMeshGenerateGeoProjet() {
     
     int lTags[] = {l1, l2, l3, l4, l5, l6, l7, l8 };  
     int c1[] = {1};
-    //c1[0] = gmshModelGeoAddCurveLoop(lTags, 8, 1, 0, &ierr);  
+    c1[0] = gmshModelGeoAddCurveLoop(lTags, 8, 1, 0, &ierr);  
     int s1 = gmshModelGeoAddPlaneSurface(c1, 1, 1, &ierr);
 
     gmshModelGeoSynchronize(&ierr);
@@ -82,9 +82,9 @@ void geoMeshGenerateBar() {
 
 
     int ierr;
-    double LxBar = theGeometry->LxBar ;  // w=1
-    double h = theGeometry->LyBar + theGeometry->LyPlate; // h=1
-    double lc = theGeometry->h;     //0.05
+    double LxBar = theGeometry->LxBar ;  
+    double h = theGeometry->LyBar + theGeometry->LyPlate; 
+    double lc = theGeometry->h;     
 
 
 
@@ -104,7 +104,7 @@ void geoMeshGenerateBar() {
 
     int lTags[] = {l1, l2, l3, l4};  
     int c1[] = {1};
-    //c1[0] = gmshModelGeoAddCurveLoop(lTags, 4, 1, 0, &ierr);  
+    c1[0] = gmshModelGeoAddCurveLoop(lTags, 4, 1, 0, &ierr);  
     int s1 = gmshModelGeoAddPlaneSurface(c1, 1, 1, &ierr);
     gmshModelGeoSynchronize(&ierr);
 
@@ -132,10 +132,10 @@ void geoMeshGenerateProjecteur() {
     geoSetSizeCallback(geoSize); 
    
     int ierr;
-    double Lx = theGeometry->LxPlate;  // w=1
-    double LxBar = theGeometry->LxBar ;  // w=1
-    double Ly = theGeometry->LyPlate; // h=1
-    double lc = theGeometry->h;     //0.05
+    double Lx = theGeometry->LxPlate;  
+    double LxBar = theGeometry->LxBar ;  
+    double Ly = theGeometry->LyPlate; 
+    double lc = theGeometry->h;     
 
     int p1 = gmshModelGeoAddPoint( -2.5*Lx, 0., 0., lc, 1, &ierr);
     int p2 = gmshModelGeoAddPoint( -2.5*Lx, Ly, 0., lc, 2, &ierr);
@@ -156,7 +156,7 @@ void geoMeshGenerateProjecteur() {
 
     int lTags[] = {l1, l2, l3, l4, l5, l6}; 
     int c1[] = {1};
-    //c1[0] = gmshModelGeoAddCurveLoop(lTags, 6, 1, 0, &ierr);  
+    c1[0] = gmshModelGeoAddCurveLoop(lTags, 6, 1, 0, &ierr);  
     int s1 = gmshModelGeoAddPlaneSurface(c1, 1, 1, &ierr);
     gmshModelGeoSynchronize(&ierr);
 
@@ -176,7 +176,7 @@ void geoMeshGenerateProjecteur() {
 }
 
 
-//Prof???
+
 void geoMeshGenerateGeoFile(const char *filename){
     femGeo* theGeometry = geoGetGeometry();
     int ierr;
@@ -184,7 +184,7 @@ void geoMeshGenerateGeoFile(const char *filename){
     if (theGeometry->elementType == FEM_QUAD) {
         gmshOptionSetNumber("Mesh.SaveAll",1,&ierr);
         gmshOptionSetNumber("Mesh.RecombineAll",1,&ierr);
-        gmshOptionSetNumber("Mesh.Algorithm",8,&ierr);   //change en fct du nbr de points
+        gmshOptionSetNumber("Mesh.Algorithm",8,&ierr);   
         gmshOptionSetNumber("Mesh.RecombinationAlgorithm",1.0,&ierr); 
         gmshModelGeoMeshSetRecombine(2,1,45,&ierr); 
         gmshModelMeshGenerate(2,&ierr);  }
